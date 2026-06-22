@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -18,7 +17,7 @@ func generateRandomElements(size int) []int {
 	// ваш код здесь
 	// проверка размера на равенство 0, в этом случае вернем пустой слайс
 	if size <= 0 {
-		return []int{}
+		return nil
 	}
 
 	// Инициализируем глобальный генератор случайных чисел
@@ -28,7 +27,7 @@ func generateRandomElements(size int) []int {
 
 	// Заполняем слайс
 	for i := 0; i < size; i++ {
-		result[i] = rand.Intn(100)
+		result[i] = rand.Int()
 	}
 	return result
 
@@ -39,8 +38,8 @@ func maximum(data []int) int {
 	// ваш код здесь
 	// Слайс пустой или равен nil
 	if len(data) == 0 {
-		// Возвращает минимально возможное значение типа int
-		return math.MinInt
+		// Возвращает 0, так как только положительные числа по условию
+		return 0
 	}
 	// Инициализация max значением первого элемента слайса ( проверка выше, что слайс не пустой)
 	max := data[0]
@@ -60,16 +59,13 @@ func maxChunks(data []int) int {
 	// ваш код здесь
 	// Проверка массива, что не пустой и не равен nil
 	if len(data) == 0 {
-		return math.MinInt
+		return 0
 	}
 	// Вычисляем размер каждого среза и делим на количество частей
 	chunkSize := len(data) / CHUNKS
 
 	// Создаем слай для хранения максимумов каждой части
 	maxes := make([]int, CHUNKS)
-	for i := range maxes {
-		maxes[i] = math.MinInt
-	}
 
 	// Создаем переменную типа sync.WaitGroup для ожидания завершения всех горутин
 	var wg sync.WaitGroup
@@ -85,16 +81,10 @@ func maxChunks(data []int) int {
 		// Вычисляем конечный индекс текущего среза
 		end := start + chunkSize
 
-		// Захватываем все элементы до конца слайса, если размер части = 0 или мы на последней итерации
+		// Захватываем все элементы до конца слайса, если  мы на последней итерации
 
 		if i == CHUNKS-1 || chunkSize == 0 {
 			end = len(data)
-		}
-
-		// Если start > end , значит часть пустая, горутина завершится ничего не делая
-		if start >= end {
-			wg.Done()
-			continue
 		}
 
 		// Запускаем анонимную функцию асинхронно
@@ -103,32 +93,14 @@ func maxChunks(data []int) int {
 		go func(data []int, index int, start int, end int) {
 			defer wg.Done()
 
-			// Инициализируем локальный максимум первым элементом текущего среза
-			localMax := data[start]
-
-			// Поиск максимума по всем элементам текущего среза
-			for j := start + 1; j < end; j++ {
-				if data[j] > localMax {
-					localMax = data[j]
-				}
-			}
-
-			// Запись максимума в слайс
-			maxes[index] = localMax
-
+			// Используем maximum
+			maxes[index] = maximum(data[start:end])
 		}(data, i, start, end)
 	}
 
 	wg.Wait()
 
-	// Слайс maxes заполнен 8 значениями, ищем максимум
-	finalMax := math.MinInt
-	for i := 0; i < len(maxes); i++ {
-		if maxes[i] > finalMax {
-			finalMax = maxes[i]
-		}
-	}
-	return finalMax
+	return maximum(maxes)
 }
 
 func main() {

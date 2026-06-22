@@ -3,6 +3,8 @@ package main
 import (
 	"math"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestGenerateRandomElements проверяет генерацию случайных чисел
@@ -23,15 +25,11 @@ func TestGenerateRandomElements(t *testing.T) {
 			actualSlice := generateRandomElements(tc.size)
 
 			// 1. Проверяем длину возвращаемого слайса
-			if len(actualSlice) != tc.expectedLen {
-				t.Errorf("generateRandomElements(%d) length = %d, want %d", tc.size, len(actualSlice), tc.expectedLen)
-			}
+			assert.Equal(t, tc.expectedLen, len(actualSlice), "Длина слайса не совпадает для размера %d", tc.size)
 
-			// 2. Проверяем, что все элементы находятся в ожидаемом диапазоне [0, 100)
+			// 2. Проверяем, что все элементы больше 0
 			for i, v := range actualSlice {
-				if v < 0 || v >= 100 {
-					t.Errorf("generateRandomElements(%d)[%d] = %d, want in range [0, 100)", tc.size, i, v)
-				}
+				assert.GreaterOrEqual(t, v, 0, "Элемент %d для размера %d оказался меньше нуля", i, tc.size)
 			}
 		})
 	}
@@ -45,8 +43,8 @@ func TestMaximum(t *testing.T) {
 		expected int
 	}{
 		// Крайние случаи с пустыми данными
-		{"Пустой слайс", []int{}, math.MinInt},
-		{"Nil слайс", nil, math.MinInt},
+		{"Пустой слайс", []int{}, 0},
+		{"Nil слайс", nil, 0},
 
 		// Слайсы с одним элементом
 		{"Один положительный элемент", []int{42}, 42},
@@ -71,9 +69,7 @@ func TestMaximum(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := maximum(tt.data)
-			if result != tt.expected {
-				t.Errorf("maximum(%v) = %d, want %d", tt.data, result, tt.expected)
-			}
+			assert.Equal(t, tt.expected, result, "maximum(%v) вернул неверный результат", tt.data)
 		})
 	}
 }
